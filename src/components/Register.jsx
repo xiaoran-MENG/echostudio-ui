@@ -3,8 +3,7 @@ import { assets } from "../assets"
 import toast from "react-hot-toast"
 import { useAuth } from "../context/AuthContext"
 
-const Register = () => {
-
+const Register = ({ toLogin }) => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmedPassword, setConfirmedPassword] = useState('')
@@ -35,6 +34,7 @@ const Register = () => {
             const result = await register(email, password)
             if (result.success) {
                 toast.success(result.message)
+                toLogin()
             } else {
                 toast.error(result.message)
                 setError(result.error)
@@ -63,6 +63,11 @@ const Register = () => {
                 </div>
                 <div className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700">
                     <form className="space-y-6" onSubmit={submit}>
+                        {error && 
+                            <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 text-red-300 text-sm">
+                                {error}
+                            </div> 
+                        }
                         <div>
                             <label className="block text-sm font-medium text-gray-200 mb-2" htmlFor="email">Email</label>
                             <input 
@@ -94,20 +99,29 @@ const Register = () => {
                             />
                         </div>
                         <button
+                            disabled={loading}
                             className="w-full flex justify-center py-3 px-4 border border-transparent 
-                                        rounded-lg shadow-md text-sm font-medium text-white 
-                                        bg-gradient-to-r from-blue-500 to-blue-700 
-                                        hover:from-blue-600 hover:to-blue-800 
-                                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 
-                                        disabled:cursor-not-allowed 
-                                        transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-                            Register
+                                rounded-lg shadow-md text-sm font-medium text-white 
+                                bg-gradient-to-r from-blue-500 to-blue-700 
+                                hover:from-blue-600 hover:to-blue-800 
+                                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 
+                                disabled:cursor-not-allowed 
+                                transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                            {loading ? <div className="flex items-center">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                        Creating account...
+                                    </div>
+                                : 'Register'
+                            }    
                         </button>
                     </form>
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-400">
                             Already have an account?
-                            <button className="text-green-400 hover:text-green-300 font-medium transition-colors cursor-pointer ml-1">Log in</button>
+                            <button
+                                onClick={toLogin}
+                                className="text-green-400 hover:text-green-300 font-medium transition-colors cursor-pointer ml-1"
+                            >Log in</button>
                         </p>
                     </div>
                     <div className="mt-4 text-center">

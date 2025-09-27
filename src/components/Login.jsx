@@ -1,12 +1,14 @@
 import toast from "react-hot-toast"
 import { assets } from "../assets"
 import { useState } from "react"
+import { useAuth } from "../context/AuthContext"
 
-const Login = () => {
+const Login = ({ toRegister }) => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const { login } = useAuth()
 
     const submit = async e => {
         e.preventDefault()
@@ -17,6 +19,21 @@ const Login = () => {
             setError(err)
             toast.error(err)
             return
+        }
+
+        setLoading(true)
+        try {
+            const result = await login(email, password)
+
+            if (!result.success) {
+                toast.error(result.message)
+                setError(result.message)
+            }
+        } catch (err) {
+            setError(err.message)
+            toast.error('Unexpected error occurred. Please try again later')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -35,6 +52,11 @@ const Login = () => {
                 </div>
                 <div className="bg-gray-900/80 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-700">
                     <form className="space-y-6" onSubmit={submit}>
+                        {error && 
+                            <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 text-red-300 text-sm">
+                                {error}
+                            </div> 
+                        }
                         <div>
                             <label className="block text-sm font-medium text-gray-200 mb-2" htmlFor="email">Email</label>
                             <input 
@@ -56,6 +78,7 @@ const Login = () => {
                             />
                         </div>
                         <button
+                            disabled={loading}
                             className="w-full flex justify-center py-3 px-4 border border-transparent 
                                         rounded-lg shadow-md text-sm font-medium text-white 
                                         bg-gradient-to-r from-blue-500 to-blue-700 
@@ -63,13 +86,21 @@ const Login = () => {
                                         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 
                                         disabled:cursor-not-allowed 
                                         transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-                            Log in
+                            {loading ? <div className="flex items-center">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                        Logging in...
+                                    </div>
+                                : 'Log in'
+                            }  
                         </button>
                     </form>
                     <div className="mt-6 text-center">
                         <p className="text-sm text-gray-400">
                             Don't have an account?
-                            <button className="text-green-400 hover:text-green-300 font-medium transition-colors cursor-pointer ml-1">
+                            <button
+                                onClick={toRegister}
+                                className="text-green-400 hover:text-green-300 font-medium transition-colors cursor-pointer ml-1"
+                            >
                                 Register
                             </button>
                         </p>

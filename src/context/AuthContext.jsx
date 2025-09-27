@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const API_BASE_URL = 'http://localhost:8080'
 
@@ -14,11 +14,27 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null)
     const [token, setToken] = useState(localStorage.getItem('userToken'))
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const storedToken = localStorage.getItem('userToken')
+        const storedUser = localStorage.getItem('userData')
+
+        if (storedToken && storedUser) {
+            setToken(storedToken)
+            setUser(JSON.parse(storedUser))
+        }
+
+        setLoading(false)
+    }, [])
 
     const register = async (email, password) => {
         try {
-            const response = await axios.post(`${API_BASE_URL}/api/auth/register`, { email, password })
+            const response = await axios.post(`${API_BASE_URL}/api/auth/register`, { 
+                email, 
+                password 
+            })
+
             if (response,status === 200) {
                 return {
                     success: true,
@@ -38,8 +54,47 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
+    const login = async (email, password) => {
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+                email,
+                password
+            })
+
+            if (response.status === 200) {
+
+                const user = {
+                    email: response.data.email,
+                    role: response.data.role
+                }
+
+                setToken(response.data.token)
+                setUser(user)
+
+                localStorage.setItem('userToken', response.data.token)
+                localStorage.setItem('userData', JSON.stringify(user))
+
+                return {
+                    success: true
+                }
+            }
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response.data || 'Network error'
+            }
+        }
+    }
+
+    const authenticated = () => {
+        return !!token && !!user
+    }
+
     const contextValue = {
-        register
+        register,
+        login,
+        authenticated,
+        loading
     }
 
     return (
