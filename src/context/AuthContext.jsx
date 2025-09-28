@@ -86,6 +86,13 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
+    const logout = () => {
+        setToken(null)
+        setUser(null)
+        localStorage.removeItem('userToken')
+        localStorage.removeItem('userData')
+    }
+
     const authenticated = () => {
         return !!token && !!user
     }
@@ -93,6 +100,7 @@ export const AuthProvider = ({ children }) => {
     const contextValue = {
         register,
         login,
+        logout,
         authenticated,
         loading
     }
